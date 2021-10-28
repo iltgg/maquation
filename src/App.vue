@@ -1,28 +1,29 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-  </div>
+  <body class="flex justify-center items-center h-screen w-screen">
+    <div
+      class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white w-8 h-8"
+    >
+      {{ varList[0].name }}
+    </div>
+  </body>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+class Variable {
+  constructor(name, value) {
+    this.name = name;
+    this.value = value ? value : 0;
+  }
+}
 
 export default {
-  name: "App",
-  components: {
-    HelloWorld,
+  data: function () {
+    return {
+      varList: [new Variable("a", 23)],
+    };
   },
+  methods: {},
 };
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>
