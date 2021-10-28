@@ -1,14 +1,28 @@
 <template>
-  <body class="flex justify-center items-center h-screen w-screen">
-    <div
-      class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white w-8 h-8"
-    >
-      {{ varList[0].name }}
+  <body class="flex justify-center items-center flex-col h-screen w-screen">
+    <div class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white">
+      <ul>
+        <li v-for="variable in varList" :key="variable.name">
+          {{ variable.name }}, {{ variable.value }}
+        </li>
+      </ul>
+    </div>
+
+    <div class="border-2 border-black p-4">
+      <div v-for="variable in varList" :key="variable.name">
+        <variable-input :variable="variable"></variable-input>
+      </div>
+    </div>
+    <div class="">
+      <input type="text" v-model="newVarName" />
+      <input type="button" value="Add" @click="addVariable" />
     </div>
   </body>
 </template>
 
 <script>
+import VariableInput from "./components/VariableInput.vue";
+
 class Variable {
   constructor(name, value) {
     this.name = name;
@@ -20,10 +34,46 @@ export default {
   data: function () {
     return {
       varList: [new Variable("a", 23)],
+      newVarName: "",
     };
   },
-  methods: {},
+  methods: {
+    addVariable: function () {
+      let isError = false;
+      if (this.newVarName !== "") {
+        for (let i = 0; i < this.varList.length; i++) {
+          if (this.varList[i].name === this.newVarName) {
+            isError = true;
+            alert(`Variable ${this.newVarname} name already in use`);
+            break;
+          }
+        }
+      } else {
+        isError = true;
+        alert("Invalid variable name");
+      }
+
+      if (!isError) {
+        this.varList.push(new Variable(this.newVarName));
+        this.newVarName = "";
+      }
+    },
+  },
+  components: {
+    VariableInput,
+  },
 };
 </script>
 
-<style></style>
+<style lang="scss">
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+</style>
