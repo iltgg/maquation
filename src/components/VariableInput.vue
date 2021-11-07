@@ -6,6 +6,7 @@
       v-model="variable.value"
       @input="$emit('evaluate')"
       class="w-3/4 bg-gray-300"
+      placeholder="0"
     />
   </div>
 </template>

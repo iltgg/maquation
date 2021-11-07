@@ -1,34 +1,27 @@
 <template>
   <body class="flex justify-center items-center flex-col h-screen w-screen">
-    <discription-input v-model="discription"></discription-input>
-    <div v-html="markDown" class="no-tailwindcss"></div>
-    <equation-input v-model="equation"></equation-input>
-    <div class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white">
-      <ul>
-        <li v-for="variable in varList" :key="variable.name">
-          {{ variable.name }}, {{ variable.value }}
-        </li>
-        <li>
-          {{ solution }}
-        </li>
-      </ul>
+    <div class="flex justify-center">
+      <discription-input v-model="discription"></discription-input>
+      <div
+        v-html="markDown"
+        class="no-tailwindcss w-96 border-2 border-black"
+      ></div>
     </div>
 
+    <equation-input v-model="equation"></equation-input>
+    <div v-html="equationTex"></div>
+
+    <div class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white">
+      {{ solution }}
+    </div>
+
+    <!-- List all Variables + input -->
     <div class="border-2 border-black p-4">
       <div v-for="variable in varList" :key="variable.name">
         <variable-input
           :variable="variable"
           @evaluate="mathEvaluate"
         ></variable-input>
-      </div>
-    </div>
-    <div class="flex flex-col items-center">
-      <div>
-        <input type="text" v-model="newVarName" />
-        <input type="button" value="Add" @click="addVariable" />
-      </div>
-      <div>
-        <input type="button" value="Evaluate" @click="mathEvaluate" />
       </div>
     </div>
   </body>
@@ -40,6 +33,7 @@ import EquationInput from "./components/EquationInput.vue";
 import DiscriptionInput from "./components/DiscriptionInput.vue";
 import { create, all } from "mathjs";
 import { marked } from "marked";
+import katex from "katex";
 
 const math = create(all);
 
@@ -53,43 +47,54 @@ class Variable {
 export default {
   data: function () {
     return {
-      varList: [new Variable("a", 23)],
       equation: "",
-      solution: "",
-      newVarName: "",
+      solution: "waiting...",
       discription: "",
+      edit: false,
     };
   },
   computed: {
     markDown: function () {
       return marked.parse(this.discription);
     },
+    equationTex: function () {
+      try {
+        let tex = math.parse(this.equation).toTex();
+        if (tex !== "undefined") {
+          return katex.renderToString(tex, { throwOnError: false });
+        }
+      } catch (error) {
+        return error.message;
+      }
+      return "Enter Equation";
+    },
+    varList: function () {
+      let variableArray = [];
+      try {
+        math.parse(this.equation).traverse(function (node, path, parent) {
+          if (node.isSymbolNode && parent?.name !== node.name) {
+            if (
+              variableArray.filter((v) => {
+                return v.name === node.name;
+              }).length === 0
+            ) {
+              variableArray.push(new Variable(node.name));
+            }
+          }
+        });
+      } catch {
+        return variableArray;
+      }
+      return variableArray;
+    },
   },
   methods: {
-    addVariable: function () {
-      let isError = false;
-      if (this.newVarName !== "") {
-        for (let i = 0; i < this.varList.length; i++) {
-          if (this.varList[i].name === this.newVarName) {
-            isError = true;
-            alert(`Variable ${this.newVarname} name already in use`);
-            break;
-          }
-        }
-      } else {
-        isError = true;
-        alert("Invalid variable name");
-      }
-
-      if (!isError) {
-        this.varList.push(new Variable(this.newVarName));
-        this.newVarName = "";
-      }
-    },
     mathEvaluate: function () {
       const scope = {};
       this.varList.forEach((variable) => {
-        scope[variable.name] = variable.value;
+        scope[variable.name] = math.number(
+          math.fraction(variable.value ? variable.value : 0)
+        ); // Allows fraction answers
       });
       this.solution = math.evaluate(this.equation, scope);
     },
