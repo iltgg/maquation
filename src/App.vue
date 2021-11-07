@@ -1,5 +1,7 @@
 <template>
   <body class="flex justify-center items-center flex-col h-screen w-screen">
+    <discription-input v-model="discription"></discription-input>
+    <div v-html="markDown" class="no-tailwindcss"></div>
     <equation-input v-model="equation"></equation-input>
     <div class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white">
       <ul>
@@ -35,7 +37,9 @@
 <script>
 import VariableInput from "./components/VariableInput.vue";
 import EquationInput from "./components/EquationInput.vue";
+import DiscriptionInput from "./components/DiscriptionInput.vue";
 import { create, all } from "mathjs";
+import { marked } from "marked";
 
 const math = create(all);
 
@@ -53,7 +57,13 @@ export default {
       equation: "",
       solution: "",
       newVarName: "",
+      discription: "",
     };
+  },
+  computed: {
+    markDown: function () {
+      return marked.parse(this.discription);
+    },
   },
   methods: {
     addVariable: function () {
@@ -87,6 +97,22 @@ export default {
   components: {
     VariableInput,
     EquationInput,
+    DiscriptionInput,
+  },
+  updated: function () {
+    // Cheese because idk how to import katex with npm
+    window.renderMathInElement(document.body, {
+      // customised options
+      // • auto-render specific keys, e.g.:
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false },
+        { left: "\\[", right: "\\]", display: true },
+      ],
+      // • rendering keys, e.g.:
+      throwOnError: false,
+    });
   },
 };
 </script>
