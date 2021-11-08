@@ -1,5 +1,6 @@
 <template>
   <body class="flex justify-center items-center flex-col h-screen w-screen">
+    <!-- Discription -->
     <div class="flex justify-center">
       <discription-input v-model="discription"></discription-input>
       <div
@@ -8,6 +9,7 @@
       ></div>
     </div>
 
+    <!-- Equation -->
     <equation-input v-model="equation"></equation-input>
     <div v-html="equationTex"></div>
 
@@ -58,6 +60,7 @@ export default {
       return marked.parse(this.discription);
     },
     equationTex: function () {
+      // Renders input equation as tex, also acts as validator
       try {
         let tex = math.parse(this.equation).toTex();
         if (tex !== "undefined") {
@@ -71,8 +74,12 @@ export default {
     varList: function () {
       let variableArray = [];
       try {
+        // Traverses input equation to find variables
         math.parse(this.equation).traverse(function (node, path, parent) {
+          // Checks if node is variable, sqrt sin etc. are also symbol nodes
+          // but will be the child of a function node with the same name
           if (node.isSymbolNode && parent?.name !== node.name) {
+            // Checks if variable has already been identified
             if (
               variableArray.filter((v) => {
                 return v.name === node.name;
@@ -83,6 +90,7 @@ export default {
           }
         });
       } catch {
+        // Returns empty array on fail
         return variableArray;
       }
       return variableArray;
@@ -93,8 +101,8 @@ export default {
       const scope = {};
       this.varList.forEach((variable) => {
         scope[variable.name] = math.number(
-          math.fraction(variable.value ? variable.value : 0)
-        ); // Allows fraction answers
+          math.fraction(variable.value ? variable.value : 0) // If no value then default to 0
+        ); // Converts to fraction then back to number to allow fraction input
       });
       this.solution = math.evaluate(this.equation, scope);
     },
@@ -105,17 +113,17 @@ export default {
     DiscriptionInput,
   },
   updated: function () {
-    // Cheese because idk how to import katex with npm
+    // import auto katex for real later
     window.renderMathInElement(document.body, {
       // customised options
-      // • auto-render specific keys, e.g.:
+      // auto-render specific keys, e.g.:
       delimiters: [
         { left: "$$", right: "$$", display: true },
         { left: "$", right: "$", display: false },
         { left: "\\(", right: "\\)", display: false },
         { left: "\\[", right: "\\]", display: true },
       ],
-      // • rendering keys, e.g.:
+      // rendering keys, e.g.:
       throwOnError: false,
     });
   },
