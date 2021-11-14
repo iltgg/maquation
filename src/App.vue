@@ -2,15 +2,19 @@
   <body class="flex justify-center items-center flex-col h-screen w-screen">
     <!-- Discription -->
     <div class="flex justify-center">
-      <discription-input v-model="discription"></discription-input>
+      <discription-input
+        v-model="discription"
+        v-show="edit"
+      ></discription-input>
       <div
         v-html="markDown"
+        v-show="!edit"
         class="no-tailwindcss w-96 border-2 border-black"
       ></div>
     </div>
 
     <!-- Equation -->
-    <equation-input v-model="equation"></equation-input>
+    <equation-input v-model="equation" v-show="edit"></equation-input>
     <div v-html="equationTex"></div>
 
     <div class="bg-pink-300 text-black dark:bg-gray-700 dark:text-white">
@@ -25,6 +29,21 @@
           @evaluate="mathEvaluate"
         ></variable-input>
       </div>
+      <input type="button" value="Evaluate" @click="mathEvaluate(true)" />
+    </div>
+
+    <!-- Options -->
+    <div>
+      <input type="checkbox" id="edit" value="true" v-model="edit" />
+      <label for="edit">Edit mode</label>
+      <input
+        type="checkbox"
+        id="auto"
+        value="true"
+        v-model="autoEvaluate"
+        checked
+      />
+      <label for="auto">Auto evaluate equations</label>
     </div>
   </body>
 </template>
@@ -47,12 +66,14 @@ class Variable {
 }
 
 export default {
+  name: "App",
   data: function () {
     return {
       equation: "",
       solution: "waiting...",
       discription: "",
       edit: false,
+      autoEvaluate: true,
     };
   },
   computed: {
@@ -97,14 +118,17 @@ export default {
     },
   },
   methods: {
-    mathEvaluate: function () {
-      const scope = {};
-      this.varList.forEach((variable) => {
-        scope[variable.name] = math.number(
-          math.fraction(variable.value ? variable.value : 0) // If no value then default to 0
-        ); // Converts to fraction then back to number to allow fraction input
-      });
-      this.solution = math.evaluate(this.equation, scope);
+    mathEvaluate: function (override) {
+      if (this.autoEvaluate || override) {
+        const scope = {};
+        this.varList.forEach((variable) => {
+          scope[variable.name] = math.evaluate(
+            // math.evalute so any input can be parsed
+            variable.value ? variable.value : 0 // If no value then default to 0
+          );
+        });
+        this.solution = math.evaluate(this.equation, scope);
+      }
     },
   },
   components: {
